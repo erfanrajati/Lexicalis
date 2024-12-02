@@ -1,17 +1,39 @@
 from SymbolTable import SymbolTable
-import string
-
 
 class Scanner:
-    def __init__(self, file, s_table:SymbolTable):
+    def __init__(self, file, s_table:SymbolTable, charCat):
         lines = file.readlines()
-        l = len(lines)
+        l: list[str] = len(lines)
         self.lines = dict(zip(range(l), lines))
         self.st = s_table
+        self.cc = charCat
+
+    def scan(self, word):
+        forward = word[0]
+        if forward == '$': # Variabale
+            pass
+
+        if forward in self.cc.digits: # Numberic
+            pass
+            
+        if forward == '"': # String literal
+            pass
+    
+    def tokenize(self, word: str):
+        for key in self.st.types.keys():
+            if word.strip() in self.st.types[key]:
+                return (word, "kw")
+        
+        # if the token wasn't already found
+        return self.scan(word)
 
 
-class CharCat:
-    def __init__(self):
-        self.lowercase_chars = set(string.ascii_lowercase)  # 'a' to 'z'
-        self.uppercase_chars = set(string.ascii_uppercase)  # 'A' to 'Z'
-        self.digits = set(string.digits)                    # '0' to '9'
+    def split(self):
+        for line in self.lines:
+            words = line.split()
+            for word in words:
+                self.tokenize(word)
+
+
+
+
