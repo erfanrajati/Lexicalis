@@ -57,7 +57,7 @@ float_diagram = StateDiagram(
 class_diagram = StateDiagram(
     (('0', 'U'), 'A'),
     (('A', 'U'), 'A'),
-    token_type="cls"
+    token_type="class"
 )
 
 string_diagram = StateDiagram(
@@ -77,5 +77,5 @@ string_diagram = StateDiagram(
 
 # print(float_diagram.scan("12.21"))
 # print(class_diagram.scan("FDHW"))
-print(string_diagram.scan("\"helloooefhe\""))
+# print(string_diagram.scan("\"helloooefhe\""))
 
