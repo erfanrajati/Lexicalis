@@ -1,10 +1,10 @@
-from Ascii import cc # cc is an Object from CharCat class
+from Ascii import char_cat # char_cat is an Object from CharCat class
 
 class StateDiagram:
-    def __init__(self, *args:tuple[tuple, str], token_type, cc=cc):
+    def __init__(self, *args:tuple[tuple, str], token_type, char_cat=char_cat):
         self.products = dict()
         self.token_type = token_type
-        self.cc = cc # Character Categories e.g. Lower, Upper, etc.
+        self.char_cat = char_cat # Character Categories e.g. Lower, Upper, etc.
         for pair in args:
             self.products[pair[0]] = pair[1]
 
@@ -12,11 +12,11 @@ class StateDiagram:
         state = '0'
         for char in word:
             c = ''
-            if char in self.cc.lowercase_chars:
+            if char in self.char_cat.lowercase_chars:
                 c = 'L'
-            elif char in self.cc.uppercase_chars:
+            elif char in self.char_cat.uppercase_chars:
                 c = 'U'
-            elif char in self.cc.digits:
+            elif char in self.char_cat.digits:
                 c = 'D'
             else:
                 c = char
@@ -28,7 +28,7 @@ class StateDiagram:
         else:
             raise ValueError("Token did not reach acceptance state.")
 
-        
+      
 variable_diagram = StateDiagram(
     (('0', '$'), '1'),
     (('1', 'U'), 'A'),
@@ -57,14 +57,25 @@ float_diagram = StateDiagram(
 class_diagram = StateDiagram(
     (('0', 'U'), 'A'),
     (('A', 'U'), 'A'),
-    token_type="class"
+    token_type="cls"
+)
+
+string_diagram = StateDiagram(
+    (('0', '"'), '1'),
+    *(
+        (('1', char), '1') 
+        for char in char_cat.all_chars if char != '"'
+    ),
+    (('1', '"'), 'A'),
+    token_type="str"
 )
 
 # Debug
-print(variable_diagram.scan("$FDfsodn"))
+# print(variable_diagram.scan("$FDfsodn"))
 # variable_diagram.scan("$F11fd")
 # variable_diagram.scan("$FDfs#fdpj")
 
-print(float_diagram.scan("12.21"))
-print(class_diagram.scan("FDHW"))
+# print(float_diagram.scan("12.21"))
+# print(class_diagram.scan("FDHW"))
+print(string_diagram.scan("\"helloooefhe\""))
 
