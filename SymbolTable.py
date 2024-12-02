@@ -3,7 +3,8 @@ class SymbolTable:
         self.types = {
             "var":[], # Variable
             "func":["print", "input"], # Function
-            "cls":["INT", "FLOAT", "STR", "BOOL"], # Class
+            "cls":[], # Class (including data types)
+            "kw":[], # Key Words
             "opr":[], # Operator
             "num":[], # Numeric
             "str":[], # String Literal
