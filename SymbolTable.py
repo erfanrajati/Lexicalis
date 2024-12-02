@@ -3,7 +3,7 @@ class SymbolTable:
         self.types = {
             "var":{}, # Variable
             "func":{"print", "input"}, # Function
-            "cls":{}, # Class (including data types)
+            "class":{}, # Class (including data types)
             "kw":{"while", "for", "if", "else", "elif", "repeat", "until", "class", "func"}, # Key Words
             "opr":{'+', '-', '*', '/', '=', '==', '>=', '<=', 'inc', 'dec', 'div'}, # Operator
             "num":{}, # Numeric
