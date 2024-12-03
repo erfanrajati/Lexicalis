@@ -3,11 +3,11 @@ from Ascii import char_cat
 from StateDiagram import *
 
 class Scanner:
-    def __init__(self, file, st = SymbolTable.st, char_cat=char_cat):
+    def __init__(self, file, st=SymbolTable.st, char_cat=char_cat):
         '''main initializer, uses file input'''
         self.st = st
         self.char_cat = char_cat
-        self.lines = file.readlines()
+        self.lines: list[str] = file.readlines()
         self.tokens: list[tuple[str, str]] = []
 
 
@@ -19,7 +19,7 @@ class Scanner:
     #     self.tokens = []
 
 
-    def scan_word(self, word: str) -> tuple[str, str]: 
+    def scan_word(self, word: str) -> tuple[str, str]:
         '''
         Runs in the background,
         Gets a word and returns if it's a token and its type.
@@ -34,7 +34,7 @@ class Scanner:
                 self.st.types[result[1]].add(result[0])
                 
                 # Log
-                print(f"Token found: {result}")
+                # print(f"Token found: {result}")
                 return result
 
         # if the word wasn't already found
@@ -59,7 +59,7 @@ class Scanner:
         self.st.types[result[1]].add(result[0])
         
         # Log
-        print(f"Token found: {result}")
+        # print(f"Token found: {result}")
         return result
     
 
@@ -80,7 +80,7 @@ class Scanner:
                 # print(group, target) # Debug
                 group = group[1:]
 
-            elif group and group[first] in self.st.types['opr']:
+            elif group[first] in self.st.types['opr']:
                 # Buffer the entire operator token
                 forward += 1
                 while (group[forward] in self.st.types['opr']) and (group[forward] != '#'): 
@@ -91,10 +91,10 @@ class Scanner:
                     results.append(temp)
                     group = group[forward:]
 
-            elif group and (group[first] in self.char_cat.non_special | set({'$'})):
+            elif (group[first] in self.char_cat.non_special | set({'$'})):
                 # Buffer the entire variable token.
                 forward += 1
-                while (group[forward] in self.char_cat.non_special | set({'.'})) and (group[forward] != '#'):
+                while (group[forward] in self.char_cat.non_special | set({'.'})) and (group[forward] != '#'): 
                     forward += 1
                     # print(group, forward) # Debug
                 else: 
@@ -103,18 +103,20 @@ class Scanner:
                     results.append(temp)
                     group = group[forward:]
 
-            elif group and group[first] == '"':
-                # Buffer the entire string token
-                forward += 1
-                while group[forward] in self.char_cat.all_chars - '"': 
-                    forward += 1
-                else: 
-                    target = group[first:forward+1] # no backtrack
-                    temp = self.scan_word(target)
-                    results.append(temp)
-                    group = group[forward:]
+            elif group[first] == '"': # Can't happen now, because of the new split method!
+                pass
+            #     # Buffer the entire string token
+            #     forward += 1
+            #     while group[forward] in self.char_cat.all_chars - '"': 
+            #         forward += 1
+            #     else: 
+            #         target = group[first:forward+1] # no backtrack
+            #         temp = self.scan_word(target)
+            #         results.append(temp)
+            #         group = group[forward:]
+            
             else:
-                raise KeyError(group[:-1]) # Show which part was causing the error
+                raise KeyError(group[:-1]) # Show which part was causing the error (Except #)
             
             # Bring back forward after each operation
             forward = first 
@@ -124,8 +126,8 @@ class Scanner:
 
     def tokenize(self, word: str) -> list[tuple[str, str]]:
         '''
-        Runs in the background
-        Gets a word (single or multi token) and returns the token inside that word.
+        Runs in the background.
+        Gets a word (single or multi token) and returns the tokens inside that word.
         '''
         
         # see if the word was a single token:
@@ -144,7 +146,7 @@ class Scanner:
         return results
 
 
-    def split(self, line: str) -> tuple[list[str], bool]:
+    def split(self, line: str) -> list[str]:
         '''
         Splits the input line of code by space. 
         But leaves the strings whole as the should be.
@@ -153,7 +155,6 @@ class Scanner:
         '''
         line = line.replace('"', ' " ')
         words = line.split()
-        string_stat = True
         while True:
             begin, end = 0, 0
             for i in range(len(words)):
@@ -170,42 +171,36 @@ class Scanner:
 
             elif begin:
                 words = words[:begin]
-                string_stat = False
-                break
-
+                print(f"Error detected")
+                print("    --> String was opened but not closed.")
+                return words
+            
             else: # No string is left
                 break
-        
-        return (words, string_stat)
+        return words
 
 
     def run(self):
-    # def run(self, file_out):
-    
+        '''Tokenizes the given file.'''   
         for i, line in enumerate(self.lines):
             line = line.replace('"', ' " ')
-
-            print(f"\n\nScanning line: {i+1}")
-            print("    -->", line)
-            
+            print("-----------------------")
+            print(f"Scanning line: {i+1}")
+            print("    --> ", line.strip(), '\n')
             words = self.split(line)
-            if words[1] == False: # Means some string was opened and not closed
-                print(f"Error detected at line {i+1}")
-                print("    --> String was opened but not closed.")
-
-            words = words[0] # to just consider the main part from here on
             
             # Tokenize each wrod and handle exceptions.
             for word in words:
                 try:
-                    print(f"\nWorking on: {word}")
+                    # Log
+                    # print(f"\nWorking on: {word}")
                     self.tokenize(word)
                 except KeyError as e:
-                    print(f"Error detected at line {i+1}\n    --> {e}")
+                    print(f"Error detected\n    --> {e}")
                 except ValueError as e:
-                    print(f"Error detected at line {i+1}\n    --> {e}: {word}")
+                    print(f"Error detected\n    --> {e}: {word}")
                 except UnboundLocalError as e:
-                    print(f"Error detected at line {i+1}\n    --> {e}: {word}")
+                    print(f"Error detected\n    --> {e}: {word}")
 
 
 

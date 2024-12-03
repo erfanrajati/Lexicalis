@@ -6,17 +6,18 @@ for [INT $I ; $I < 10 ; inc $I] {
         print("Congrats dear USER");
     }
 
-    if [12.553<=3565] {
-        print("HELLO, WORLD!");
+    elif [12.53 <=356!5] {
+        input("HELLO, WORLD!);
     }
+
+    else {}
 }
 
 class PERSON {
-    STRING $Name, $Age, $Address;
+    STRING $Name $Age $Address;
 }
 
-repeat
-{
+repeat{
     INT $Age;
     FLOAT $Grade;
     BOOL $Gender;
