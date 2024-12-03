@@ -148,17 +148,65 @@ class Scanner:
         return results
 
 
+    def split(self, line: str) -> tuple[list[str], bool]:
+        '''
+        Splits the input line of code by space. 
+        But leaves the strings whole as the should be.
+        Returns the a tuple containing the list of words and 
+        error status that shows if the strings where all closed. (False means not Closed)
+        '''
+        line = line.replace('"', ' " ')
+        words = line.split()
+        string_stat = True
+        while True:
+            begin, end = 0, 0
+            for i in range(len(words)):
+                if words[i] == '"' and begin:
+                    end = i
+                    break
+
+                if words[i] == '"':
+                    begin = i
+                     
+            print(begin, end)
+            if begin and end:
+                cat = '"' + ' '.join(s for s in words[begin+1:end]) + '"'
+                print(cat)
+                words = words[:begin] + [cat] + words[end+1:]
+
+            elif begin:
+                words = words[:begin]
+                string_stat = False
+                break
+
+            else: # No string is left
+                break
+        
+        return (words, string_stat)
+
+
+
     def run(self):
     # def run(self, file_out):
+    
         for i, line in self.lines.items():
-            words = line.split() 
-                # also splits inside the strings! musn't do that.
-                # must concat all members from "* to *"
+            line = line.replace('"', ' " ')
+
+            print(f"\n\nScanning line: {i}")
+            print("    -->", line)
+            
+            words = self.split(line)
+            if words[1] == False: # Means some string was opened and not closed
+                print(f"Error detected at line {i}")
+                print("    --> String was opened but not closed.")
+
+            words = words[0] # to just consider the main part from here on
+            
+            # Tokenize each wrod and handle exceptions.
             for word in words:
-                # To catch the exception raised in StateDiagram.scan()
                 try:
                     print(f"\nWorking on: {word}")
-                    result = self.tokenize(word)
+                    self.tokenize(word)
                 except KeyError as e:
                     print(f"Error detected at line {i}\n    --> {e}")
                 except ValueError as e:
@@ -166,17 +214,12 @@ class Scanner:
                 except UnboundLocalError as e:
                     print(f"Error detected at line {i}\n    --> {e}: {word}")
 
-                finally:
-                    # Debug
-                    # print(result)
-                    # or perhaps fill a file with the result.
-                    pass
 
 
 
 # Debug
 
-code = "[ 123.234]]] for[INT+] $I] \"hello\" 123+456 $Gsd!d"
+code = "[ 123.234]]] for[INT+] $I] \"hello my name is erfan\" 123+456 $Gsd!d"
 # code = "[=<]"
 
 st = SymbolTable()
