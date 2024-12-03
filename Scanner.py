@@ -28,6 +28,7 @@ class Scanner:
         lines = [inputString]
         l: list[str] = len(lines)
         self.lines = dict(zip(range(l), lines))
+        self.tokens = []
 
 
     def scan_word(self, word: str) -> tuple[str, str]: # might raise a KeyError or ValueError
@@ -57,80 +58,94 @@ class Scanner:
     
 
     def scan_group(self, group: str) -> list[tuple[str, str]]:
-        group += '#'
+        group += '#' # acts like 'other', not considered by any State Diagram
         results = []
         first, forward = 0, 0
-        while first < len(group):
+        while first < len(group) and group != '#': 
             if group[first] in self.st.types['del']:
                 # to buffer the potential delimiter
                 target = group[first]
-                results.append(self.scan_word(target))
+                temp = self.scan_word(target)
+                results.append(temp)
+                self.tokens.append(temp)
                 # print(group, target) # Debug
                 try:
                     group = group[:first] + group[first+1:]
                 except IndexError:
                     break
 
-            if group and group[first] in self.st.types['opr']:
+            elif group and group[first] in self.st.types['opr']:
                 # to buffer the entire operator token
                 forward += 1
-                while group[first:forward] in self.st.types['opr']: 
+                print(group, forward)
+                while (group[forward] in self.st.types['opr']) and (group[forward] != '#'): 
                     forward += 1
                 else: # backtrack
                     target = group[first:forward]
-                    results.append(self.scan_word(target))
-                    group = group[:first] + group[forward+1:]
-                    forward = first
+                    temp = self.scan_word(target)
+                    results.append(temp)
+                    self.tokens.append(temp)
+                    group = group[:first] + group[forward:]
 
-
-            if group and (group[first] == '$' or group[first] in self.char_cat.non_special):
+            elif group and (group[first] == '$' or group[first] in self.char_cat.non_special):
 
                 # to buffer the entire variable token.
                 forward += 1
                 while (group[forward] in self.char_cat.non_special | set({'.'})) and (group[forward] != '#'):
                     forward += 1
-                    print(group, forward) # Debug
+                    # print(group, forward) # Debug
                 else: # backtrack
                     target = group[first:forward] # from first to one before forward
-                    results.append(self.scan_word(target))
-                    group = group[:first] + group[forward+1:]
-                    forward = first
+                    temp = self.scan_word(target)
+                    results.append(temp)
+                    self.tokens.append(temp)
+                    group = group[:first] + group[forward:]
 
-            if group and group[first] == '"':
+            elif group and group[first] == '"':
                 # to buffer the entire string token
                 forward += 1
                 while group[forward] in self.char_cat.all_chars - '"': 
                     forward += 1
                 else: # no backtrack
                     target = group[first:forward+1]
-                    results.append(self.scan_word(target))
+                    temp = self.scan_word(target)
+                    results.append(temp)
+                    self.tokens.append(temp)
                     group = group[:first] + group[forward:]
-                    forward = first
+            
+            forward = first
                     
-        group = group[:len(group)-1]
+        # group = group[:len(group)-1] # Error here
+        # print(group)
         return results
 
 
     # COMPLETED
     def tokenize(self, word: str) -> list[tuple[str, str]]:
+    # def tokenize(self, word: str, file_out) -> list[tuple[str, str]]:
         '''Might raise Key or Value errors'''
         # see if the word was a single token:
         try:
             results = [self.scan_word(word)] 
         except UnboundLocalError:
-            results = self.scan_group(group=word)
+            try: 
+                results = self.scan_group(group=word)
+            except UnboundLocalError:
+                raise UnboundLocalError("Token not recognized") # change error massage for readability
         except KeyError:
             results = self.scan_group(group=word)
             
-        # Key and Value Error will be handled in self.run()
             
         
         for r in results:
+            print(r)
             self.st.types[r[1]].add(r[0]) # add the token to the Symbol Table
+            # Add this to scan_word, also change tokens to be added in scan_group
         return results
 
 
     def run(self):
+    # def run(self, file_out):
         for i, line in self.lines.items():
             words = line.split() 
                 # also splits inside the strings! musn't do that.
@@ -140,23 +155,34 @@ class Scanner:
                 try:
                     result = self.tokenize(word)
                 except KeyError as e:
-                    print(f"Error detected at line {i}:\n{e}: {word}")
+                    print(f"Error detected at line {i}\n    --> {e}: {word}")
                 except ValueError as e:
-                    print(f"Error detected at line {i}:\n{e}: {word}")
-                else:
+                    print(f"Error detected at line {i}\n    --> {e}: {word}")
+                except UnboundLocalError as e:
+                    print(f"Error detected at line {i}\n    --> {e}: {word}")
+
+                finally:
                     # Debug
-                    print(result)
+                    # print(result)
                     # or perhaps fill a file with the result.
+                    pass
 
 
 
 # Debug
 
-code = "[ 123.234]]] for[INT+ ] $I]"
-# code = "[INT"
+# code = "[ 123.234]]] for[INT ] $I]"
+code = "[=<]"
 
 st = SymbolTable()
-scanner = Scanner(code, st=st)
-scanner.run()
+with open("SymbolTable.out", 'a') as outpuf:
+    scanner = Scanner(code, st=st)
+    scanner.run()
+
+    for k, v in scanner.st.types.items():
+        print(k, v)
+    
+    for t in scanner.tokens:
+        print(t)
 
 
