@@ -57,6 +57,7 @@ class Scanner:
     
 
     def scan_group(self, group: str) -> list[tuple[str, str]]:
+        group += '#'
         results = []
         first, forward = 0, 0
         while first < len(group):
@@ -79,21 +80,21 @@ class Scanner:
                     target = group[first:forward]
                     results.append(self.scan_word(target))
                     group = group[:first] + group[forward+1:]
+                    forward = first
 
 
             if group and (group[first] == '$' or group[first] in self.char_cat.non_special):
 
                 # to buffer the entire variable token.
                 forward += 1
-                while (group[forward] in self.char_cat.non_special| set({'.'})) and (forward < len(group)): 
+                while (group[forward] in self.char_cat.non_special | set({'.'})) and (group[forward] != '#'):
                     forward += 1
-                    print(group, forward)
+                    print(group, forward) # Debug
                 else: # backtrack
                     target = group[first:forward] # from first to one before forward
-                    # print(target) # Debug
                     results.append(self.scan_word(target))
-                    # print(group, target) # Debug
-                    group = group[:first] + group[forward:]
+                    group = group[:first] + group[forward+1:]
+                    forward = first
 
             if group and group[first] == '"':
                 # to buffer the entire string token
@@ -103,10 +104,10 @@ class Scanner:
                 else: # no backtrack
                     target = group[first:forward+1]
                     results.append(self.scan_word(target))
-                    group = group[:first] + group[forward+1:]
-            
-            forward = first
-        
+                    group = group[:first] + group[forward:]
+                    forward = first
+                    
+        group = group[:len(group)-1]
         return results
 
 
@@ -114,10 +115,13 @@ class Scanner:
     def tokenize(self, word: str) -> list[tuple[str, str]]:
         '''Might raise Key or Value errors'''
         # see if the word was a single token:
-        # try:
-            # results = [self.scan_word(word)] 
-        # except UnboundLocalError:
-        results = self.scan_group(group=word)
+        try:
+            results = [self.scan_word(word)] 
+        except UnboundLocalError:
+            results = self.scan_group(group=word)
+        except KeyError:
+            results = self.scan_group(group=word)
+            
         # Key and Value Error will be handled in self.run()
             
         
@@ -148,8 +152,11 @@ class Scanner:
 
 # Debug
 
+code = "[ 123.234]]] for[INT+ ] $I]"
+# code = "[INT"
+
 st = SymbolTable()
-scanner = Scanner("if[123 < 123]", st=st)
+scanner = Scanner(code, st=st)
 scanner.run()
 
 
