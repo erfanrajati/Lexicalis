@@ -1,0 +1,24 @@
+INT $Age = 21;
+
+for [INT $I ; $I < 10 ; inc $I] {
+    FLOAT $Grade = 12.1;
+    if [$Grade == 20.0] {
+        print("Congrats dear USER");
+    }
+
+    if [12.553<=3565] {
+        print("HELLO, WORLD!");
+    }
+}
+
+class PERSON {
+    STRING $Name, $Age, $Address;
+}
+
+repeat
+{
+    INT $Age;
+    FLOAT $Grade;
+    BOOL $Gender;
+    PERSON $HelloWorld;
+} until [$Condition]
