@@ -10,6 +10,7 @@ class Scanner:
         self.lines = file.readlines()
         self.tokens: list[tuple[str, str]] = []
 
+
     # def __init__(self, inputString, st=SymbolTable.st, char_cat=char_cat):
     #     '''Debug initializer, uses string input'''
     #     self.st = st
@@ -18,10 +19,14 @@ class Scanner:
     #     self.tokens = []
 
 
-    def scan_word(self, word: str) -> tuple[str, str]: # might raise a KeyError or ValueError
+    def scan_word(self, word: str) -> tuple[str, str]: 
+        '''
+        Runs in the background,
+        Gets a word and returns if it's a token and its type.
+        '''
         # see if the word was already found
         for key in self.st.types.keys():
-            if word.strip() in self.st.types[key]:
+            if word in self.st.types[key]:
                 result = (word, key)
                 
                 # Add the new token to Symbol Table and Token list
@@ -59,70 +64,74 @@ class Scanner:
     
 
     def scan_group(self, group: str) -> list[tuple[str, str]]:
-        group += '#' # acts like 'other', not considered by any State Diagram
+        '''
+        Runs in the background, scans groups of tokens. 
+        Returns a list of tokens in that group
+        '''
+        group += '#' # acts like 'other', not evaluated by any State Diagram
         results = []
         first, forward = 0, 0
         while first < len(group) and group != '#': 
             if group[first] in self.st.types['del']:
-                # to buffer the potential delimiter
+                # Buffer the potential delimiter
                 target = group[first]
                 temp = self.scan_word(target)
                 results.append(temp)
                 # print(group, target) # Debug
                 group = group[1:]
 
-
             elif group and group[first] in self.st.types['opr']:
-                # to buffer the entire operator token
+                # Buffer the entire operator token
                 forward += 1
                 while (group[forward] in self.st.types['opr']) and (group[forward] != '#'): 
                     forward += 1
-                else: # backtrack
-                    target = group[:forward]
+                else: 
+                    target = group[:forward] # backtrack
                     temp = self.scan_word(target)
                     results.append(temp)
                     group = group[forward:]
 
             elif group and (group[first] in self.char_cat.non_special | set({'$'})):
-                # to buffer the entire variable token.
+                # Buffer the entire variable token.
                 forward += 1
                 while (group[forward] in self.char_cat.non_special | set({'.'})) and (group[forward] != '#'):
                     forward += 1
                     # print(group, forward) # Debug
-                else: # backtrack
-                    target = group[:forward] # from first to one before forward
+                else: 
+                    target = group[:forward] # backtrack
                     temp = self.scan_word(target)
                     results.append(temp)
                     group = group[forward:]
 
             elif group and group[first] == '"':
-                # to buffer the entire string token
+                # Buffer the entire string token
                 forward += 1
                 while group[forward] in self.char_cat.all_chars - '"': 
                     forward += 1
-                else: # no backtrack
-                    target = group[first:forward+1]
+                else: 
+                    target = group[first:forward+1] # no backtrack
                     temp = self.scan_word(target)
                     results.append(temp)
-                    group = group[:first] + group[forward:]
+                    group = group[forward:]
             else:
-                raise KeyError(group[:-1])
+                raise KeyError(group[:-1]) # Show which part was causing the error
             
-            forward = first
+            # Bring back forward after each operation
+            forward = first 
                     
         return results
 
 
-    # COMPLETED
     def tokenize(self, word: str) -> list[tuple[str, str]]:
-    # def tokenize(self, word: str, file_out) -> list[tuple[str, str]]:
-        '''Might raise Key or Value errors'''
+        '''
+        Runs in the background
+        Gets a word (single or multi token) and returns the token inside that word.
+        '''
         
         # see if the word was a single token:
         try:
             results = [self.scan_word(word)] 
-            # must return a list if it's a token since the return value of this function is later treated as a list
-        
+
         # if it's not a single token
         except UnboundLocalError:
             try: 
@@ -168,7 +177,6 @@ class Scanner:
                 break
         
         return (words, string_stat)
-
 
 
     def run(self):
