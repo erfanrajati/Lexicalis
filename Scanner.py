@@ -1,34 +1,21 @@
-from SymbolTable import SymbolTable
+import SymbolTable
 from Ascii import char_cat
 from StateDiagram import *
 
 class Scanner:
-    # def __init__(self, file, s_table:SymbolTable, char_cat=char_cat):
-    #     '''main initializer, uses file input'''
-    #     lines = file.readlines()
-    #     l: list[str] = len(lines)
-    #     self.lines = dict(zip(range(l), lines))
-    #     self.st = s_table
-    #     self.char_cat = char_cat
-
-    def __init__(self, inputString, st:SymbolTable, char_cat=char_cat):
-        '''Debug initializer, uses string input'''
+    def __init__(self, file, st = SymbolTable.st, char_cat=char_cat):
+        '''main initializer, uses file input'''
         self.st = st
         self.char_cat = char_cat
+        self.lines = file.readlines()
+        self.tokens: list[tuple[str, str]] = []
 
-        # Add space before and after each delimiter
-        # c = 0
-        # while c < len(inputString)-1:
-        #     if inputString[c] in self.st.types['del']:
-        #         inputString = inputString[:c] + ' ' + inputString[c] + ' ' + inputString[c+1:]
-        #         c+=2
-        #         continue
-        #     c+=1
-        
-        lines = [inputString]
-        l: list[str] = len(lines)
-        self.lines = dict(zip(range(l), lines))
-        self.tokens = []
+    # def __init__(self, inputString, st=SymbolTable.st, char_cat=char_cat):
+    #     '''Debug initializer, uses string input'''
+    #     self.st = st
+    #     self.char_cat = char_cat        
+    #     self.lines = [inputString]
+    #     self.tokens = []
 
 
     def scan_word(self, word: str) -> tuple[str, str]: # might raise a KeyError or ValueError
@@ -168,10 +155,8 @@ class Scanner:
                 if words[i] == '"':
                     begin = i
                      
-            print(begin, end)
             if begin and end:
                 cat = '"' + ' '.join(s for s in words[begin+1:end]) + '"'
-                print(cat)
                 words = words[:begin] + [cat] + words[end+1:]
 
             elif begin:
@@ -189,15 +174,15 @@ class Scanner:
     def run(self):
     # def run(self, file_out):
     
-        for i, line in self.lines.items():
+        for i, line in enumerate(self.lines):
             line = line.replace('"', ' " ')
 
-            print(f"\n\nScanning line: {i}")
+            print(f"\n\nScanning line: {i+1}")
             print("    -->", line)
             
             words = self.split(line)
             if words[1] == False: # Means some string was opened and not closed
-                print(f"Error detected at line {i}")
+                print(f"Error detected at line {i+1}")
                 print("    --> String was opened but not closed.")
 
             words = words[0] # to just consider the main part from here on
@@ -208,31 +193,30 @@ class Scanner:
                     print(f"\nWorking on: {word}")
                     self.tokenize(word)
                 except KeyError as e:
-                    print(f"Error detected at line {i}\n    --> {e}")
+                    print(f"Error detected at line {i+1}\n    --> {e}")
                 except ValueError as e:
-                    print(f"Error detected at line {i}\n    --> {e}: {word}")
+                    print(f"Error detected at line {i+1}\n    --> {e}: {word}")
                 except UnboundLocalError as e:
-                    print(f"Error detected at line {i}\n    --> {e}: {word}")
+                    print(f"Error detected at line {i+1}\n    --> {e}: {word}")
 
 
 
 
 # Debug
 
-code = "[ 123.234]]] for[INT+] $I] \"hello my name is erfan\" 123+456 $Gsd!d"
-# code = "[=<]"
+# code = "[ 123.234]]] for[INT+] $I] \"hello my name is erfan\" 123+456 $Gsd!d"
+# # code = "[=<]"
 
-st = SymbolTable()
 
-scanner = Scanner(code, st=st)
-scanner.run()
+# scanner = Scanner(code)
+# scanner.run()
 
-print("\n\nSymbol Table: ")
-for k, v in scanner.st.types.items():
-    print(k, v)
+# print("\n\nSymbol Table: ")
+# for k, v in scanner.st.types.items():
+#     print(k, v)
 
-print("\n\nTokens: ")
-for t in scanner.tokens:
-    print(t)
+# print("\n\nTokens: ")
+# for t in scanner.tokens:
+#     print(t)
 
 

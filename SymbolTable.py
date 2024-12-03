@@ -11,5 +11,7 @@ class SymbolTable:
             "del":set({'{', '}', '[', ']', '(', ')', ';'}) # Delimiter
         }
 
+st = SymbolTable()
+
     
     
