@@ -31,6 +31,7 @@ The analyzer follows a structured flow, as depicted in the flowchart below:
 ### Flowchart
 
 For a visual representation, refer to the flowchart below:
+```ascii art
 
                    +-------------------+
                    |    Source Code    |
@@ -77,7 +78,7 @@ For a visual representation, refer to the flowchart below:
     +------------+                  +-------------------+
 
 
----
+```
 
 ## Code Overview
 
