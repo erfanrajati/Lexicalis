@@ -29,29 +29,28 @@ class Scanner:
             if word in self.st.types[key]:
                 result = (word, key)
                 
-                # Add the new token to Symbol Table and Token list
+                # Add the new token to Token list
                 self.tokens.append(result) 
-                self.st.types[result[1]].add(result[0])
                 
                 # Log
                 # print(f"Token found: {result}")
                 return result
 
         # if the word wasn't already found
-        forward = word[0]
-        if forward == '$': # Variabale
+        first = word[0]
+        if first == '$': # Variabale
             result = variable_diagram.scan(word)
 
-        elif forward in self.char_cat.uppercase_chars: # Class names
+        elif first in self.char_cat.uppercase_chars: # Class names
             result = class_diagram.scan(word)
 
-        elif forward in self.char_cat.digits: # Numberic
+        elif first in self.char_cat.digits: # Numberic
             try:
                 result = integer_diagram.scan(word)
             except:
                 result = float_diagram.scan(word)
             
-        elif forward == '"': # String literal
+        elif first == '"': # String literal
             result = string_diagram.scan(word)
 
         # Add the new token to Symbol Table and Token list
